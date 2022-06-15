@@ -3,6 +3,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const _ = require('lodash');
 
 const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor ne" +
         "que vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra" +
@@ -32,16 +33,49 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 const app = express();
 
+const posts = [];
+
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-    res.render("home");
+    res.render("home", {
+        homeStartingContent: homeStartingContent,
+        posts: posts
+    });
 })
-app.get("/aboutUs", (req, res)=>{
-        res.render("about");
+app.get("/aboutUs", (req, res) => {
+    res.render("about", {aboutContent: aboutContent});
+})
+app.get("/contactUs", (req, res) => {
+    res.render("contact", {contactContent: contactContent});
+})
+app.get("/compose", (req, res) => {
+    res.render("compose")
+})
+app.post("/compose", (req, res) => {
+    let post = {
+        title: req.body.title,
+        compose: req.body.compose
+    };
+    posts.push(post);
+    res.redirect("/");
+})
+app.get('/posts/:target', (req, res) => {
+    const requestedTitle = _.lowerCase(req.params.target);
+
+    posts.forEach(post => {
+        const storedTitle = _.lowerCase(post.title);
+
+        if (storedTitle === requestedTitle) {
+            res.render("post", {
+                title: post.title,
+                compose: post.compose
+            });
+        }
+    })
 })
 
 app.listen(3000, function () {
